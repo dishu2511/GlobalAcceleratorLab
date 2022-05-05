@@ -1,0 +1,84 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CloudFormation to create Global Accelerator
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "GlobalAccelerator parameters"
+        Parameters:
+          - ENV
+          - TechContact
+          - BusinessUnit
+          - EC2InstanceID
+          - Region
+          - ListenerPort
+
+Parameters:
+  ENV:
+    Type: String
+    Description: Name of the environment.
+    Default: ""
+
+  Region:
+    Type: String
+    Description: Name of the region
+    Default: ""
+
+  ALB:
+    Type: String
+    Description: ALB ARN
+    Default: ""
+
+  TechContact:
+    Description: Tech contact email address.
+    Type: String
+    Default: ""
+
+  BusinessUnit:
+    Description: Name of the business unit.
+    Type: String
+    Default: ""
+
+  ListenerPort:
+    Description: Port used for Listener on Global Accelerator.
+    Type: String
+    Default: "80"
+
+Resources:
+  # creating global accelerator
+  GlobalAccelerator:
+    Type: AWS::GlobalAccelerator::Accelerator
+    Properties:
+      Enabled: true
+      Name: !Sub "${ENV}-globalaccelerator"
+      Tags:
+        - Key: Name
+          Value: !Sub "${ENV}-globalaccelerator"
+        - Key: environment
+          Value: !Ref ENV
+        - Key: business-unit
+          Value: !Ref BusinessUnit
+        - Key: technical-contact
+          Value: !Ref TechContact
+        - Key: privacy-impact
+          Value: high
+
+  # creating listener for global accelerator
+  GlobalAcceleratorListener:
+    Type: AWS::GlobalAccelerator::Listener
+    Properties:
+      AcceleratorArn: !Ref GlobalAccelerator
+      PortRanges:
+        - FromPort: !Ref ListenerPort
+          ToPort: !Ref ListenerPort
+      Protocol: TCP
+
+  # creating ALB endpoint for global accelerator
+  GlobalAcceleratorEndpoint:
+    Type: AWS::GlobalAccelerator::EndpointGroup
+    Properties:
+      EndpointConfigurations:
+        - EndpointId: !Ref ALB
+      EndpointGroupRegion: !Ref Region
+      ListenerArn: !Ref GlobalAcceleratorListener
