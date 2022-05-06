@@ -481,7 +481,7 @@ Resources:
       NetworkInterfaces:
         - AssociatePublicIpAddress: "true"
           DeviceIndex: "0"
-          SubnetId: !Ref PublicSubnet1
+          SubnetId: !Ref PrivateSubnet1
           GroupSet:
             - !Ref InstanceSecurityGroup
       UserData:
